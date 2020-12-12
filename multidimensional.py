@@ -10,7 +10,7 @@ from core.bias_estimation import BiasEstimator, BiasTosatto
 from core.kernels import GaussianKernel
 from core.kernel_regression import KernelRegression
 from core.ensemble_estimator import Ensemble
-from core.functions import Laplace, Normal, Sin, Lin, Root, LnCosh, Cauchy, Uniform, Pareto, Log, MultiUniform
+from core.functions import Laplace, Normal, Sin, Lin, Root, LnCosh, Cauchy, Uniform, Pareto, Log, MultiUniform, MultiGaussian
 from core.sampler import Sampler
 
 plt.rc('xtick', labelsize=10)
@@ -27,8 +27,8 @@ colors = {
 n_dims = range(1, 10)
 
 fix, axs = plt.subplots(1, 3, figsize=(9, 3))
-
-for v_query, ax in zip([0.0, 0.9, 0.95], axs):
+#TODO: change back to 0.
+for v_query, ax in zip([0, 0.5, 0.75], axs):
 
     list_tosatto_bias = []
     list_true_bias = []
@@ -39,8 +39,7 @@ for v_query, ax in zip([0.0, 0.9, 0.95], axs):
 
         X = np.linspace(np.zeros(d), np.ones(d))
         y = lin(X)
-
-        uniform = MultiUniform(-np.ones(d), np.ones(d))
+        uniform = MultiGaussian(np.zeros(d), np.ones(d)) # MultiUniform(-np.ones(d), np.ones(d)) #
         # sin = Sin(1., 1., 0.)
         # y = sin(X)
         ker_reg = KernelRegression(ker)
@@ -51,8 +50,10 @@ for v_query, ax in zip([0.0, 0.9, 0.95], axs):
         #
         # ens = Ensemble(lambda: KernelRegression(ker), Sampler(uniform, lin, None),
         #                              n_samples=1000, n_models=10)
+        # ens = Ensemble(lambda: KernelRegression(ker), Sampler(uniform, lin, None),
+        #               n_samples=100000, n_models=1000)
         ens = Ensemble(lambda: KernelRegression(ker), Sampler(uniform, lin, None),
-                      n_samples=100000, n_models=1000)
+                       n_samples=100000, n_models=1000)
         true_bias = np.abs(lin(np.array([query])) - ens.predict(np.array([query])))
         list_true_bias.append(true_bias)
         print("true bias", true_bias)
@@ -64,9 +65,9 @@ for v_query, ax in zip([0.0, 0.9, 0.95], axs):
     ax.set_title("$\mathbf{x}=%.2f$" % v_query)
     ax.plot(n_dims, list_tosatto_bias, label="Tosatto et al.", ls="-.", color=colors["tosatto"])
     ax.plot(n_dims, list_true_bias, label="$|\mathbb{E}[\hat{m}(x)] - m(x)|$", color=colors["true"])
-    if v_query==0:
+    if v_query==0.:
         ax.set_ylabel("Bias")
-    if v_query==0.95:
+    if v_query==0.75:
         ax.legend(loc="best")
     ax.set_xlabel("$d$")
 plt.savefig("plots/figure2.pdf", bbox_inches='tight',

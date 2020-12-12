@@ -10,12 +10,12 @@ import matplotlib.pyplot as plt
 plt.rc('text', usetex=True)
 
 
-from core.kernels import GaussianKernel
+from core.kernels import GaussianKernel, Box
 from core.functions import Laplace, Normal, Sin, Root, LnCosh, Cauchy, Uniform, Pareto, Log
 from core.experiment import Experiment
 from core.plot import PlotResult, PlotResultBias
 
-
+print("imports")
 
 plt.rc('xtick', labelsize=5)
 plt.rc('ytick', labelsize=5)
@@ -23,48 +23,50 @@ plt.rc('lines', linewidth=0.5)
 
 
 def experiment_1():
-    title = "(c) $h = 0.2$"
+    title = "(c) $h = 0.3$"
     y_label = r"$m(x)\!=\!\frac{\log\!\cosh(60x)}{60}$"
     y_design = r"$\mathrm{Laplace}(0, 0.5)$"
-    x_grid = np.linspace(-1.5, 1.5, 200)
+    x_grid = np.linspace(-1.5, 1.5, 500)
     design = Laplace(0., 0.5)
     regression_function = LnCosh(a=60., c=-1.)
-    kernel = GaussianKernel(np.array([0.2]))
+    kernel = Box(np.array([0.3]))
+    print("before first exp")
     experiment = Experiment(regression_function, design, kernel)
+    print("after first exp")
 
-    zoom = dict(x_lim=(0.85, 1.15), y_lim=(-0.25, 0.25), factor=3., loc=3, loc_1=1, loc_2=4)
+    zoom = dict(x_lim=(0.97, 1.03), y_lim=(0.16, 0.22), factor=8., loc='upper left', loc_1=1, loc_2=4)
     return experiment(x_grid), title, [-1.5, 1.5], zoom, y_label, y_design
 
 
 def experiment_2():
-    title = "(b) $h = 0.15$"
+    title = "(b) $h = 0.2$"
     y_label = r"$m(x) = \log(x)$"
     y_design = r"$\mathrm{Pareto}(1, 1)$"
     x_grid = np.linspace(0.5, 3., 200)
     design = Pareto()
     regression_function = Log()
-    kernel = GaussianKernel(np.array([0.15]))
+    kernel = Box(np.array([0.2]))
     experiment = Experiment(regression_function, design, kernel)
 
-    zoom = dict(x_lim=(0.97, 1.08), y_lim=(-0.13, 0.15), factor=5, loc=4, loc_1=2, loc_2=3)
+    zoom = dict(x_lim=(0.97, 1.08), y_lim=(0.03, 0.11), factor=5, loc='upper right', loc_1=2, loc_2=3)
     return experiment(x_grid), title, (0.5, 3.), zoom, y_label, y_design
 
 
 def experiment_3():
-    title = "(a) $h = 0.05$"
+    title = "(a) $h = 0.2$"
     y_label = r"$m(x) = \sqrt{x^2 + 1}$"
     y_design = r"$\mathrm{Cauchy}(0, 1)$"
     x_grid = np.linspace(-np.pi, np.pi, 200)
     design = Cauchy()
     regression_function = Root(scale=1.)
-    kernel = GaussianKernel(np.array([0.05]))
+    kernel = Box(np.array([0.2]))
     experiment = Experiment(regression_function, design, kernel)
 
     return experiment(x_grid), title, None, None, y_label, y_design
 
 
 def experiment_4():
-    title = "(d) $h = 0.2$"
+    title = "(d) $h = 0.3$"
     y_label = "$m(x) = \sin(5x)$"
     y_design = r"$\mathrm{Pareto}(1)$"
     x_grid = np.linspace(0., np.pi, 200)
@@ -72,16 +74,16 @@ def experiment_4():
     regression_function = Sin(frequency=5., amplitude=1., phase=0.)
     design = Pareto()#Normal(0., sigma)
     delta_function = lambda X: np.abs(X) + sigma
-    kernel = GaussianKernel(np.array([0.2]))
+    kernel = Box(np.array([0.3]))
     experiment = Experiment(regression_function, design, kernel,
                             delta_function=delta_function)
 
-    zoom = dict(x_lim=(0.95, 1.2), y_lim=(-1.4, 0), factor=2.5, loc=4, loc_1=2, loc_2=3)
+    zoom = None#dict(x_lim=(0.95, 1.2), y_lim=(-1.4, 0), factor=2.5, loc=4, loc_1=2, loc_2=3)
     return experiment(x_grid), title, (0., np.pi), zoom, y_label, y_design
 
 
 def experiment_5():
-    title = "(e) $h = 0.3$"
+    title = "(e) $h = 0.4$"
     a, b = -2., 2.
     y_label = "$m(x) = \sin(5x)$"
     y_design = r"$\mathrm{Uniform}(-2, 2)$"
@@ -90,7 +92,7 @@ def experiment_5():
     regression_function = Sin(frequency=5., amplitude=1., phase=0.)
     x_grid = np.linspace(-np.pi, np.pi, 200)
 
-    kernel = GaussianKernel(np.array([0.3]))
+    kernel = Box(np.array([0.4]))
     experiment = Experiment(regression_function, design, kernel)
     return experiment(x_grid), title, None, None, y_label, y_design
 
@@ -116,6 +118,7 @@ plots = [
     (18, 0)]
 
 for e, p in zip(experiments, plots):
+    print("exp1")
     result, title, x_lim, zoom, y_label, y_design = e()
 
     ax = fig.add_subplot(grid[p[0]+1:p[0]+4, p[1]], xticklabels=[])
@@ -173,6 +176,6 @@ leg = ax.legend(list(legend.values())[5:], list(legend.keys())[5:], fontsize=6, 
 leg.set_title("Design", prop={'size':6})
 ax.axis('off')
 
-plt.savefig("plots/figure1.pdf", bbox_inches='tight',
+plt.savefig("plots/boxkernel.pdf", bbox_inches='tight',
     pad_inches=0.05)
 plt.show()

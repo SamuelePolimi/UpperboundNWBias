@@ -1,4 +1,5 @@
 import numpy as np
+import gym
 from scipy.special import erf
 
 
@@ -142,6 +143,42 @@ class Sin(Function):
 
     def max_diffference(self):
         return 2 * self.a
+
+
+class Pendulum(Function):
+
+    def __init__(self):
+        self.env = gym.make("Pendulum-v0")
+        self.u = np.array([np.pi, 8., 2.])
+
+    def __call__(self, X, noise=True):
+        self.env.reset()
+        ret = []
+        for x in X:
+            self.env.state = x[:2]
+            self.env.step(x[-1:])
+            ret.append(self.env.state[0])
+        return np.array(ret)
+
+    def domain(self):
+        return Orthopod(-self.u, self.u)
+
+    def first_derivate(self, X):
+        raise NotImplemented()
+
+    def second_derivate(self, X):
+        raise NotImplemented()
+
+    def local_lipschitz(self, X):
+        L = np.ones(X.shape[1:])        # Appears that the lipschitz function is 1
+        U = np.repeat(self.u[:, np.newaxis], X.shape[1], axis=1)
+
+        domain = Orthopods(-U, U)
+
+        return LocalLipschitz(X, L, domain)
+
+    def max_diffference(self):
+        return 2 * np.pi
 
 
 class Lin(Function):
@@ -374,7 +411,7 @@ class Uniform(DensityFunction):
         return np.zeros(X.shape[0])
 
     def log_lipschitz(self, X):
-        L = np.zeros(X.shape[1:])
+        L = np.zeros(X.shape[1:])           # To make computation feasible also for other kernels
         u = np.ones_like(X)
         domain = Orthopods(u * self.a, u * self.b)
         return LocalLipschitz(X, L, domain)
@@ -407,6 +444,57 @@ class MultiUniform(DensityFunction):
         # u = np.ones_like(X)
         domain = Orthopods(np.array([self.a]*X.shape[1]).T, np.array([self.b]*X.shape[1]).T)
         return LocalLipschitz(X, L, domain)
+
+
+class MultiGaussian(DensityFunction):
+
+    def __init__(self, mean, sigma):
+        self.mean = mean
+        self.sigma = sigma
+        self.d = mean.shape[0]
+        self.a = - np.ones(self.d)*np.infty
+        self.b =  np.ones(self.d)*np.infty
+
+    def __call__(self, n_samples):
+        return np.random.multivariate_normal(self.mean, np.diag(self.sigma**2), size=n_samples)
+
+    def domain(self):
+        return Orthopod(self.b, self.a)
+
+    def density(self, X):
+        # volume = 1/np.prod(self.b-self.a)
+        # For just this experiment we don't need to check
+        #Y = np.ravel(np.where(np.logical_and(self.a <= X, X <= self.b), volume, 0.))
+        #return np.ones(X.shape[0]) * volume
+        raise NotImplemented()
+
+    def first_derivate(self, X):
+        raise NotImplemented()
+
+    def log_lipschitz(self, X, delta=np.infty):
+
+        lipschitz = None
+        for i in range(X.shape[0]):
+            x = np.ravel(X[i])
+            u = np.ones_like(x)
+            x_max = u * self.sigma[i]
+            x_min = -u * self.sigma[i]
+
+            x_max[x_max < x] = 0.
+            x_min[x_min > x] = 0.
+
+            assert X is not None, "For Gaussian Distribution we need a Local definition of Lipschitz continuity."
+            f = lambda x: -0.5 * np.square(x - self.mean[i]) / self.sigma[i]**2
+
+            p = (f(x_max) - f(x))/(x_max - x)
+            n = (f(x_min) - f(x))/delta
+            if lipschitz is None:
+                lipschitz = np.max([np.abs(p), np.abs(n)], axis=0)
+            else:
+                lipschitz = np.max([np.abs(p), np.abs(n), lipschitz], axis=0)
+
+        domain = Orthopods(np.array([self.a] * X.shape[1]).T, np.array([self.b] * X.shape[1]).T)
+        return LocalLipschitz(X, lipschitz, domain)
 
 
 #TODO: elaborate

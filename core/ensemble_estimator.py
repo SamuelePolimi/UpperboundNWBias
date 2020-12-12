@@ -20,7 +20,6 @@ class Ensemble(Regression):
         self.min_max = np.inf
         for reg in self.regressions:
             X, y, w = sampler(n_samples)
-
             min_ = np.min(X)
             max_ = np.max(X)
             if min_ > self.max_min:
