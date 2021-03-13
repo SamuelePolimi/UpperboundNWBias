@@ -15,9 +15,6 @@ from core.functions import Laplace, Normal, Sin, Root, LnCosh, Cauchy, Uniform, 
 from core.experiment import Experiment
 from core.plot import PlotResult, PlotResultBias
 
-from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
-from mpl_toolkits.axes_grid1.inset_locator import mark_inset
-
 print("imports")
 
 plt.rc('xtick', labelsize=5)
@@ -26,50 +23,50 @@ plt.rc('lines', linewidth=0.5)
 
 
 def experiment_1():
-    title = "$h = 0.3$"     # c
+    title = "(c) $h = 0.2$"
     y_label = r"$m(x)\!=\!\frac{\log\!\cosh(60x)}{60}$"
     y_design = r"$\mathrm{Laplace}(0, 0.5)$"
-    x_grid = np.linspace(-1.5, 1.5, 500)
+    x_grid = np.linspace(-1.5, 1.5, 200)
     design = Laplace(0., 0.5)
     regression_function = LnCosh(a=60., c=-1.)
-    kernel = GaussianKernel(np.array([0.3]))
+    kernel = GaussianKernel(np.array([np.sqrt(2)*0.2]))
     print("before first exp")
     experiment = Experiment(regression_function, design, kernel)
     print("after first exp")
 
-    zoom = dict(x_lim=(0.97, 1.03), y_lim=(0.16, 0.22), factor=8., loc='upper left', loc_1=1, loc_2=4)
+    zoom = dict(x_lim=(0.85, 1.15), y_lim=(-0.25, 0.25), factor=3., loc=3, loc_1=1, loc_2=4)
     return experiment(x_grid), title, [-1.5, 1.5], zoom, y_label, y_design
 
 
 def experiment_2():
-    title = "$h = 0.2$"     # b
+    title = "(b) $h = 0.15$"
     y_label = r"$m(x) = \log(x)$"
     y_design = r"$\mathrm{Pareto}(1, 1)$"
     x_grid = np.linspace(0.5, 3., 200)
     design = Pareto()
     regression_function = Log()
-    kernel = GaussianKernel(np.array([0.2]))
+    kernel = GaussianKernel(np.array([np.sqrt(2)*0.15]))
     experiment = Experiment(regression_function, design, kernel)
 
-    zoom = dict(x_lim=(0.97, 1.08), y_lim=(0.03, 0.11), factor=5, loc='upper right', loc_1=2, loc_2=3)
+    zoom = dict(x_lim=(0.97, 1.08), y_lim=(-0.13, 0.15), factor=5, loc=4, loc_1=2, loc_2=3)
     return experiment(x_grid), title, (0.5, 3.), zoom, y_label, y_design
 
 
 def experiment_3():
-    title = "$h = 0.1$"     # a
+    title = "(a) $h = 0.05$"
     y_label = r"$m(x) = \sqrt{x^2 + 1}$"
     y_design = r"$\mathrm{Cauchy}(0, 1)$"
     x_grid = np.linspace(-np.pi, np.pi, 200)
     design = Cauchy()
     regression_function = Root(scale=1.)
-    kernel = GaussianKernel(np.array([0.1]))
+    kernel = GaussianKernel(np.array([np.sqrt(2)*0.05]))
     experiment = Experiment(regression_function, design, kernel)
 
     return experiment(x_grid), title, None, None, y_label, y_design
 
 
 def experiment_4():
-    title = "$h = 0.3$" # d
+    title = "(d) $h = 0.2$"
     y_label = "$m(x) = \sin(5x)$"
     y_design = r"$\mathrm{Pareto}(1)$"
     x_grid = np.linspace(0., np.pi, 200)
@@ -77,16 +74,16 @@ def experiment_4():
     regression_function = Sin(frequency=5., amplitude=1., phase=0.)
     design = Pareto()#Normal(0., sigma)
     delta_function = lambda X: np.abs(X) + sigma
-    kernel = GaussianKernel(np.array([0.3]))
+    kernel = GaussianKernel(np.array([np.sqrt(2)*0.2]))
     experiment = Experiment(regression_function, design, kernel,
                             delta_function=delta_function)
 
-    zoom = None#dict(x_lim=(0.95, 1.2), y_lim=(-1.4, 0), factor=2.5, loc=4, loc_1=2, loc_2=3)
+    zoom = dict(x_lim=(0.95, 1.2), y_lim=(-1.4, 0), factor=2.5, loc=4, loc_1=2, loc_2=3)
     return experiment(x_grid), title, (0., np.pi), zoom, y_label, y_design
 
 
 def experiment_5():
-    title = "$h = 0.4$"     # e
+    title = "(e) $h = 0.3$"
     a, b = -2., 2.
     y_label = "$m(x) = \sin(5x)$"
     y_design = r"$\mathrm{Uniform}(-2, 2)$"
@@ -95,7 +92,7 @@ def experiment_5():
     regression_function = Sin(frequency=5., amplitude=1., phase=0.)
     x_grid = np.linspace(-np.pi, np.pi, 200)
 
-    kernel = GaussianKernel(np.array([0.4]))
+    kernel = GaussianKernel(np.array([np.sqrt(2)*0.3]))
     experiment = Experiment(regression_function, design, kernel)
     return experiment(x_grid), title, None, None, y_label, y_design
 
@@ -138,19 +135,12 @@ for e, p in zip(experiments, plots):
     ax.set_ylabel(r"$\mathrm{Bias}$", fontsize=4.5)
 
     legend = PlotResultBias(ax, result, title, show_desing=False, x_lim=x_lim, ret=legend, color=True)
-    if zoom is not None:
-        axins = zoomed_inset_axes(ax, zoom["factor"], loc=zoom["loc"])
-        PlotResultBias(axins, result, title, show_desing=False, x_lim=zoom["x_lim"], ret=legend, color=True)
-        axins.set_xlim(*zoom["x_lim"])
-        axins.set_ylim(*zoom["y_lim"])
-        axins.set_xticks([])
-        axins.set_yticks([])
-        mark_inset(ax, axins, loc1=zoom["loc_1"], loc2=zoom["loc_2"], fc="none", ec="0.5")
 
     ax = fig.add_subplot(grid[p[0]+7:p[0]+9, p[1]])
 
     ax.set_xticks([])
     ax.set_yticks([])
+
     ax.set_ylabel(y_design, fontsize=4.5)
     PlotResult(ax, result, "",
                show_rosenblatt=False,
@@ -186,6 +176,6 @@ leg = ax.legend(list(legend.values())[5:], list(legend.keys())[5:], fontsize=6, 
 leg.set_title("Design", prop={'size':6})
 ax.axis('off')
 
-plt.savefig("plots/gaussian.pdf", bbox_inches='tight',
+plt.savefig("plots/figure1.pdf", bbox_inches='tight',
     pad_inches=0.05)
 plt.show()

@@ -26,7 +26,7 @@ plt.rc('lines', linewidth=0.5)
 
 
 def experiment_1():
-    title = "(c) Gaussian $h = 0.3$"
+    title = "Gaussian $h = 0.3$"    # c
     y_label = r"$m(x)\!=\!\frac{\log\!\cosh(60x)}{60}$"
     y_design = r"$\mathrm{Laplace}(0, 0.5)$"
     x_grid = np.linspace(-1.5, 1.5, 500)
@@ -42,7 +42,7 @@ def experiment_1():
 
 
 def experiment_2():
-    title = "(b) Gaussian $h = 0.2$"
+    title = "Gaussian $h = 0.2$"    # b
     y_label = r"$m(x) = \log(x)$"
     y_design = r"$\mathrm{Pareto}(1, 1)$"
     x_grid = np.linspace(0.5, 3., 200)
@@ -56,7 +56,7 @@ def experiment_2():
 
 
 def experiment_3():
-    title = "(a) Gaussian $h = 0.1$"
+    title = "Gaussian $h = 0.1$"    # a
     y_label = r"$m(x) = \sqrt{x^2 + 1}$"
     y_design = r"$\mathrm{Cauchy}(0, 1)$"
     x_grid = np.linspace(-np.pi, np.pi, 200)
@@ -69,7 +69,7 @@ def experiment_3():
 
 
 def experiment_4():
-    title = "(d) Triangle $h = 0.3$"
+    title = "Triangle $h = 0.3$"    # d
     y_label = "$m(x) = \sin(5x)$"
     y_design = r"$\mathrm{Pareto}(1)$"
     x_grid = np.linspace(0., np.pi, 200)
@@ -86,7 +86,7 @@ def experiment_4():
 
 
 def experiment_5():
-    title = "(e) Box $h = 0.4$"
+    title = "Box $h = 0.4$"     # e
     a, b = -2., 2.
     y_label = "$m(x) = \sin(5x)$"
     y_design = r"$\mathrm{Uniform}(-2, 2)$"
